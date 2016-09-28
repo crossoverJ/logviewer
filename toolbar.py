@@ -77,18 +77,17 @@ class toolBar(QtGui.QToolBox):
         self.cb(self.filterList[name]['list'])
 
     def rightClicked(self):
-        print self.sender().text()
-        print 'right clicked'
         name = str(self.itemText(self.currentIndex()))
-        print name
+        print name,self.sender().text(),'right clicked'
         l = self.getlistByName(name,self.sender().text())
+        if l == '':
+            return
         isSaved = [0]
-        print type(isSaved)
         dlg = lineConfig(l,isSaved)
         dlg.exec_()
         print 'issaved',isSaved
         if isSaved[0]:
-            print 'listchange!'
+            print l
             self.updateList()
 
     def OnChanged(self):
@@ -138,6 +137,12 @@ class toolBar(QtGui.QToolBox):
         return ''
     def updateList(self):
         print 'updatelist'
+        for name in self.filterList:
+            filterGroup = self.filterList[name]
+            for filterSingle in filterGroup['list']:
+                if filterSingle.has_key('button'):
+                    filterSingle['button'].setText(filterSingle['name'])
+
 
 class lineConfig(QtGui.QDialog):
     listCopy = {}
@@ -146,7 +151,6 @@ class lineConfig(QtGui.QDialog):
         self.setWindowTitle('config')
         self.listSingle = listSingle
         self.issaved = issaved
-
         self.nameLabel = QtGui.QLabel(self.tr('name'))
         self.keyWordLabel = QtGui.QLabel(self.tr('keyword'))
         self.leftWordLabel = QtGui.QLabel(self.tr('left words'))
@@ -205,13 +209,56 @@ class lineConfig(QtGui.QDialog):
 
     def OnSave(self):
         print 'save'
+        rc = self.checkValid()
+        if not rc=='':
+            QtGui.QMessageBox.information(self,"Information",self.tr(rc+' is empty!'))  
+            print rc
+            print 'invalid'
+            return
         for name in self.listCopy:
             self.listSingle[name] = self.listCopy[name]
         self.issaved[0] = 1
-        print type(self.issaved)
+        #print type(self.issaved)
         self.close()
 
     def OnCancel(self):
         print 'cancel'
         self.issaved[0] = 0
         self.close()
+
+    def translateName(self,name):
+        name = str(name)
+        dic =  {'name':'name',
+                'keyword':'keyword',
+                'left words':'leftword',
+                'right words':'rightword',
+                'line width':'line_width',
+                'color':'color'}
+        if dic.has_key(name):
+            return dic[name]
+        else:
+            return name
+
+    def checkValid(self):
+        if self.nameInput.text().isEmpty():
+            print 'name is empty !'
+            return self.nameLabel.text()
+        self.listCopy[self.translateName(self.nameLabel.text())] = str(self.nameInput.text())
+
+        if self.keyWordInput.text().isEmpty():
+            print 'name is empty !'
+            return self.keyWordLabel.text()
+        self.listCopy[self.translateName(self.keyWordLabel.text())] = str(self.keyWordInput.text())
+
+        if self.leftWordInput.text().isEmpty():
+            print 'name is empty !'
+            return self.leftWordLabel.text()
+        self.listCopy[self.translateName(self.leftWordLabel.text())] = str(self.leftWordInput.text())
+
+        if self.rightWordInput.text().isEmpty():
+            print 'name is empty !'
+            return self.rightWordLabel.text()
+        self.listCopy[self.translateName(self.rightWordLabel.text())] = str(self.rightWordInput.text())
+
+        self.listCopy[self.translateName(self.lineWidthLabel.text())] = int(self.lineWidthInput.value())
+        return ''
