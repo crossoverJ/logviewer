@@ -26,28 +26,34 @@ class toolBar(QtGui.QToolBox):
             print name
             filterGroup = self.filterList[name]
             groupbox = QtGui.QGroupBox()
-            vlayout = QtGui.QVBoxLayout(groupbox)
-            vlayout.setMargin(10)
-            vlayout.setAlignment(QtCore.Qt.AlignLeft)
+            glayout = QtGui.QGridLayout(groupbox)
+            glayout.setMargin(10)
+            glayout.setAlignment(QtCore.Qt.AlignLeft)
             cnt = 0
             for filterSingle in filterGroup['list']:
                 button = QtGui.QCheckBox(filterSingle['name'])
-                #button = myCheckBox(filterSingle['name'],filterSingle['name'])
                 button.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+                deleteButton = QtGui.QPushButton('del')
+                deleteButton.setFixedWidth(30)
+                edtiButton = QtGui.QPushButton('...')
+                edtiButton.setFixedWidth(30)
                 if filterSingle.has_key('checked'):
                     button.setChecked((filterSingle['checked']))
                 else:
                     filterSingle['checked'] = 0
-                vlayout.addWidget(button)
-                filterSingle['button'] = button
+                glayout.addWidget(button,cnt,0)
+                glayout.addWidget(deleteButton,cnt,1)
+                glayout.addWidget(edtiButton,cnt,2)
+                filterSingle['button'] = {'button':button,'deleteButton':deleteButton,'editButton':edtiButton}
                 button.clicked.connect(self.OnClicked)
-                button.customContextMenuRequested.connect(self.rightClicked)
+                deleteButton.clicked.connect(self.OnDelete)
+                edtiButton.clicked.connect(self.OnEdit)
+                #button.customContextMenuRequested.connect(self.rightClicked)
                 #self.connect(button,QtCore.SIGNAL('sgnl(str)'),self.rightClicked)
                 cnt+=1
-            vlayout.addStretch(1)
+            #glayout.addStretch(1)
             self.addItem(groupbox,name)
-            #groupbox.setCheckable(True)
-            #groupbox.setStyleSheet("QGroupBox{border: 1px groove blue; border-radius:5px;border-style: outset;}")
+            groupbox.setStyleSheet("QGroupBox{border: 1px groove blue; border-radius:5px;border-style: outset;}")
             filterGroup['box'] = groupbox
         for name in self.filterList:
             print name,self.filterList[name]['checked']
@@ -63,19 +69,17 @@ class toolBar(QtGui.QToolBox):
             filterGroup = self.filterList[name]
             for idx,filterSingle in enumerate(filterGroup['list']):
                 if filterSingle.has_key('button'):
-                    if filterSingle['button'].isChecked():
+                    if filterSingle['button']['button'].isChecked():
                         self.filterList[name]['list'][idx]['checked'] = 1
                     else:
                         self.filterList[name]['list'][idx]['checked'] = 0
-        '''
-        for name in self.filterList:
-            filterGroup = self.filterList[name]
-            for filterSingle in filterGroup['list']:
-                print filterSingle['checked']
-        '''
+
         name = str(self.itemText(self.currentIndex()))
         self.cb(self.filterList[name]['list'])
-
+    def OnDelete(self):
+        print self.sender()
+    def OnEdit(self):
+        print self.sender()
     def rightClicked(self):
         name = str(self.itemText(self.currentIndex()))
         print name,self.sender().text(),'right clicked'
